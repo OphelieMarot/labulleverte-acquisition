@@ -54,7 +54,7 @@ with st.spinner("Connexion aux bases de données..."):
             fichier_a_charger = "Export_Campings.csv" # Par défaut
 
         if os.path.exists(fichier_a_charger):
-            df = pd.read_csv(fichier_a_charger)
+           df = pd.read_csv(fichier_a_charger, sep=';', encoding='utf-8')
         else:
             st.warning(f"💡 Le fichier {fichier_a_charger} est introuvable. Activation de l'échantillon.")
             df = generer_fausses_donnees(region_choisie, type_structure)
