@@ -46,13 +46,14 @@ def generer_fausses_donnees(region, type_struct):
             "04 56 78 90 12"
         ]
     })
-    
+
 with st.spinner("Connexion aux bases de données..."):
     df = pd.DataFrame()
     
     if "DIRECT" in source_donnees or "LIVE" in source_donnees:
         try:
-            reponse = requests.get(f"https://api.datatourisme.fr/v1/catalog?api_key={API_KEY}", timeout=3)
+            # Votre VRAIE URL de production DATAtourisme insérée ici :
+            reponse = requests.get(f"https://diffuseur.datatourisme.fr/webservice/74a3c8b7a789a8ab9a1448f5f9c53d71/{API_KEY}", timeout=5)
             if reponse.status_code == 200 and reponse.json().get('data'):
                 pois = reponse.json().get('data', [])
                 df = pd.DataFrame([{"Nom": p.get('name', 'Inconnu'), "Région": region_choisie, "Type": type_structure} for p in pois])
@@ -65,27 +66,39 @@ with st.spinner("Connexion aux bases de données..."):
             
     else:
         # Mode Fichiers Locaux - Branché sur VOS fichiers
-        fichier_a_charger = ""
-        if type_structure == "Campings (HPA)":
-            fichier_a_charger = "Export_Campings.csv"
-        elif type_structure == "Hôtels":
-            fichier_a_charger = "Export_Hôtels.csv"
-        elif type_structure == "Offices de Tourisme":
-            fichier_a_charger = "Export_Office du tourisme.csv"
+        if type_structure == "Tous les hébergements":
+            fichiers = ["Export_Campings.csv", "Export_Hôtels.csv", "Export_Office du tourisme.csv"]
+            liste_df = []
+            for f in fichiers:
+                if os.path.exists(f):
+                    liste_df.append(pd.read_csv(f, sep=';', encoding='utf-8', on_bad_lines='skip'))
+            
+            if liste_df:
+                df = pd.concat(liste_df, ignore_index=True)
+            else:
+                st.warning("💡 Aucun fichier trouvé. Activation de l'échantillon.")
+                df = generer_fausses_donnees(region_choisie, type_structure)
+                
         else:
-            fichier_a_charger = "Export_Campings.csv" # Par défaut
+            fichier_a_charger = ""
+            if type_structure == "Campings (HPA)":
+                fichier_a_charger = "Export_Campings.csv"
+            elif type_structure == "Hôtels":
+                fichier_a_charger = "Export_Hôtels.csv"
+            elif type_structure == "Offices de Tourisme":
+                fichier_a_charger = "Export_Office du tourisme.csv"
 
-        if os.path.exists(fichier_a_charger):
-           df = pd.read_csv(fichier_a_charger, sep=';', encoding='utf-8')
-        else:
-            st.warning(f"💡 Le fichier {fichier_a_charger} est introuvable. Activation de l'échantillon.")
-            df = generer_fausses_donnees(region_choisie, type_structure)
+            if os.path.exists(fichier_a_charger):
+                df = pd.read_csv(fichier_a_charger, sep=';', encoding='utf-8', on_bad_lines='skip')
+            else:
+                st.warning(f"💡 Le fichier {fichier_a_charger} est introuvable. Activation de l'échantillon.")
+                df = generer_fausses_donnees(region_choisie, type_structure)
 
 if not df.empty:
     st.success(f"✅ Données qualifiées et prêtes pour la séquence '{type_structure}'.")
     st.dataframe(df, use_container_width=True)
     
     csv = df.to_csv(index=False).encode('utf-8-sig')
-    st.download_button(label="📥 Exporter la liste pour Lemlist (CSV)", data=csv, file_name="Prospects_LaBulleVerte.csv", mime="text/csv")
+    st.download_button(label="📥 Exporter la liste (CSV)", data=csv, file_name="Prospects_LaBulleVerte.csv", mime="text/csv")
 else:
     st.error("Aucune donnée à afficher.")
