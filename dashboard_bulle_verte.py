@@ -15,7 +15,7 @@ source_donnees = st.sidebar.radio("📂 Source :", ("DATAtourisme (API V1 EN DIR
 API_KEY = "cc30f876-4afe-4920-b7b9-28ef18e6b11f"
 
 def generer_fausses_donnees(region, type_struct):
-    # Générateur de 10 lignes pour une démo bien remplie
+    # Générateur de 10 lignes avec l'Adresse et sans la colonne Action
     nom_type = "Hôtel" if type_struct == "Hôtels" else "Camping" if type_struct == "Campings (HPA)" else "Office"
     
     return pd.DataFrame({
@@ -27,6 +27,12 @@ def generer_fausses_donnees(region, type_struct):
         ],
         "Région": [region] * 10,
         "Type": [type_struct] * 10,
+        "Adresse": [
+            "12 route des Vallées, 33000", "45 avenue de la Forêt, 17000", "8 place de l'Église, 24000",
+            "1 chemin du Lac, 40150", "99 route Bleue, 64200", "5 boulevard Fleuri, 86000",
+            "22 allée des Pins, 33120", "7 rue du Marché, 19100", "14 avenue du Pont, 87000",
+            "3 place de la Mairie, 64000"
+        ],
         "Email": [
             "direction@vallee.fr", "contact@grand-nature.fr", "hello@ecodomaine.com",
             "info@les-pins.fr", "resa@petitbleu.com", "contact@dulac.fr",
@@ -38,9 +44,9 @@ def generer_fausses_donnees(region, type_struct):
             "04 22 33 44 55", "04 66 77 88 99", "04 12 34 56 78",
             "04 98 76 54 32", "04 33 44 55 66", "04 77 88 99 00",
             "04 56 78 90 12"
-        ],
-        "Action": ["Prêt pour Lemlist"] * 10
+        ]
     })
+    
 with st.spinner("Connexion aux bases de données..."):
     df = pd.DataFrame()
     
