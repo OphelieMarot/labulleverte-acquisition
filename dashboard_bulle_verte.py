@@ -50,18 +50,32 @@ def generer_fausses_donnees(region, type_struct):
 with st.spinner("Connexion aux bases de données..."):
     df = pd.DataFrame()
     
-    if "DIRECT" in source_donnees or "LIVE" in source_donnees:
+ if "DIRECT" in source_donnees or "LIVE" in source_donnees:
         try:
-            # Votre VRAIE URL de production DATAtourisme insérée ici :
-            reponse = requests.get(f"https://diffuseur.datatourisme.fr/webservice/74a3c8b7a789a8ab9a1448f5f9c53d71/{API_KEY}", timeout=5)
-            if reponse.status_code == 200 and reponse.json().get('data'):
-                pois = reponse.json().get('data', [])
-                df = pd.DataFrame([{"Nom": p.get('name', 'Inconnu'), "Région": region_choisie, "Type": type_structure} for p in pois])
+            # 1. On augmente le temps d'attente à 30 secondes pour le fichier national
+            url = f"https://diffuseur.datatourisme.fr/webservice/74a3c8b7a789a8ab9a1448f5f9c53d71/{API_KEY}"
+            reponse = requests.get(url, timeout=30)
+            
+            if reponse.status_code == 200:
+                try:
+                    donnees = reponse.json()
+                    # 2. On vérifie le format spécifique de l'État (@graph)
+                    pois = donnees.get('@graph', donnees.get('data', []))
+                    
+                    if pois:
+                        df = pd.DataFrame([{"Nom": p.get('rdfs:label', p.get('name', 'Inconnu')), "Région": region_choisie, "Type": type_structure} for p in pois])
+                    else:
+                        st.error("❌ Le fichier a été reçu, mais il ne contient pas les données sous le format attendu.")
+                        st.json(donnees) # Ceci affichera la structure du fichier à l'écran
+                        df = generer_fausses_donnees(region_choisie, type_structure)
+                except Exception as e:
+                    st.error(f"❌ Le format reçu n'est pas du JSON lisible. Il s'agit probablement d'un fichier ZIP. (Détail: {e})")
+                    df = generer_fausses_donnees(region_choisie, type_structure)
             else:
-                st.warning("💡 L'API est en cours de configuration. Activation de l'échantillon de démonstration.")
+                st.warning(f"❌ L'API DATAtourisme a refusé l'accès. Code d'erreur : {reponse.status_code}")
                 df = generer_fausses_donnees(region_choisie, type_structure)
-        except:
-            st.warning("💡 Les serveurs nationaux sont inaccessibles. Activation de l'échantillon de démonstration.")
+        except Exception as e:
+            st.warning(f"❌ Le téléchargement est trop long ou le serveur est inaccessible. (Détail: {e})")
             df = generer_fausses_donnees(region_choisie, type_structure)
             
     else:
