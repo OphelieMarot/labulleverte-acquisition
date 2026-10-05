@@ -13,7 +13,7 @@ type_structure = st.sidebar.selectbox("🏨 Type de structure :", ("Tous les hé
 source_donnees = st.sidebar.radio("📂 Source :", ("DATAtourisme (API V1 EN DIRECT 🔴)", "Fichiers Locaux"))
 
 # Vérifiez que cette clé API est bien autorisée sur le flux Datatourisme !
-API_KEY = "cc30f876-4afe-4920-b7b9-28ef18e6b11f"
+API_KEY = "438930b1-43ad-4b12-8870-c3b4937240da
 
 def generer_fausses_donnees(region, type_struct):
     nom_type = "Hôtel" if type_struct == "Hôtels" else "Camping" if type_struct == "Campings (HPA)" else "Office"
