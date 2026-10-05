@@ -12,7 +12,6 @@ region_choisie = st.sidebar.selectbox("📍 Région cible :", ("Toute la France"
 type_structure = st.sidebar.selectbox("🏨 Type de structure :", ("Tous les hébergements", "Hôtels", "Campings (HPA)", "Offices de Tourisme"))
 source_donnees = st.sidebar.radio("📂 Source :", ("DATAtourisme (API V1 EN DIRECT 🔴)", "Fichiers Locaux"))
 
-# Vérifiez que cette clé API est bien autorisée sur le flux Datatourisme !
 API_KEY = "438930b1-43ad-4b12-8870-c3b4937240da"
 
 def generer_fausses_donnees(region, type_struct):
